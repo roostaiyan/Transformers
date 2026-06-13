@@ -1,0 +1,13 @@
+# ── Core ──────────────────────────────────────────────────────────────────────
+torch>=2.1.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+
+# ── Tokenization ──────────────────────────────────────────────────────────────
+tiktoken>=0.5.0          # BPE tokenizer (learning resource, Section 1)
+
+# ── Pre-trained embeddings ─────────────────────────────────────────────────────
+gensim>=4.3.0            # loads GloVe via gensim.downloader (~66 MB, cached)
+
+# ── Dataset ───────────────────────────────────────────────────────────────────
+datasets>=2.14.0         # HuggingFace streaming loader for TinyStories
