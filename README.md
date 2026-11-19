@@ -2,12 +2,19 @@
 
 A complete, pedagogical implementation of the Transformer architecture in PyTorch — from the attention mechanism up to training on real data and observing grokking.
 
-Two self-contained notebooks, each targeting a different domain:
+Two self-contained notebooks, each targeting a different domain, plus two bonus notebooks on modern large models and the infrastructure that trains them:
 
 | Notebook | Task | Dataset | Key technique |
 |---|---|---|---|
 | [`transformer_from_scratch.ipynb`](#-transformer_from_scratchipynb) | Language modelling | TinyStories | GloVe + SAM + Grokfast |
 | [`transformer_math_operations.ipynb`](#-transformer_math_operationsipynb) | Arithmetic + grokking | Procedural | Modular arithmetic |
+| [`modern_llm_techniques.ipynb`](#-modern_llm_techniquesipynb) | Bonus: modern LLM techniques | Synthetic | MoE · KV cache · GQA · FlashAttention · quantization · DPO · SAEs |
+| [`llm_infrastructure.ipynb`](#-llm_infrastructureipynb) | Bonus: LLM training infrastructure | Synthetic | CUDA · NCCL ring all-reduce · PyTorch DDP · Megatron tensor/pipeline parallelism |
+
+### 🎬 Video course
+
+Every notebook is walked through in a narrated video series on YouTube:
+**[Transformers From Scratch — playlist](https://www.youtube.com/playlist?list=PLF_8mbI-liG4)**
 
 ---
 
@@ -146,7 +153,52 @@ On the modular arithmetic task (`a + b mod 97`, 50% train split, strong weight d
 3. Validation accuracy then **jumps sharply to ~100%** (grokking)
 
 This is the canonical grokking result from Power et al. (2022), reproduced here from scratch.  
-The `transformer_from_scratch_subword.ipynb` notebook applies the same principles (SAM + Grokfast + weight decay) to language data.
+The `transformer_from_scratch.ipynb` notebook applies the same principles (SAM + Grokfast + weight decay) to language data.
+
+---
+
+## 📓 `modern_llm_techniques.ipynb`
+
+A bonus notebook bridging our ~450K-parameter model and frontier-scale LLMs. Each section is a small,
+runnable implementation (CPU, about half a minute for the whole notebook):
+
+```
+1   Scaling laws (Kaplan, Chinchilla): tokens per parameter; the compute-optimal split, including the
+    2024 replication that corrects the published fit
+2   RMSNorm vs LayerNorm
+3   SwiGLU feed-forward
+4   Grouped-query attention + KV cache (correctness check, speed, memory at 128k context)
+5   The FlashAttention idea: exact tiled attention with an online softmax
+6   Mixture of Experts: top-k router, load-balancing loss, with vs without balancing (5 seeds)
+7   Speculative decoding: proof and empirical check that the target distribution is preserved
+8   Quantization: absmax int8/int4, per-row vs per-group, effect of outliers (synthetic weights)
+9   Preference optimization: the DPO loss (plus RLHF and Constitutional AI context)
+10  Superposition and sparse autoencoders (toy interpretability experiment, 5 seeds)
+```
+
+Every factual claim is cited to a public paper, model card or released config, with arXiv links in the
+reference list; quoted model figures were checked against those sources. Experiments that involve
+training are reported as mean ± standard deviation over 5 seeds. Closed models (Claude, GPT, Gemini)
+don't publish full architecture details, so the notebook covers only published techniques.
+
+---
+
+## 📓 `llm_infrastructure.ipynb`
+
+A bonus notebook on how thousands of GPUs train one model, layer by layer through the stack:
+
+```
+1   CUDA: kernels, thread blocks, grids and warps; the vecAdd indexing, checked
+2   NCCL: what each collective computes; ring all-reduce with measured traffic 2(n-1)/n
+3   NVLink, NVSwitch, PCIe and the network: idealized all-reduce costs from vendor bandwidths
+4   RDMA, InfiniBand, RoCE and GPUDirect RDMA
+5   PyTorch DDP: a complete 4-process program (torchrun; NCCL on GPUs), checked against one process
+6   Megatron-LM tensor parallelism: column/row-split MLP and head-split attention, checked
+7   Pipeline parallelism: simulated schedule vs the (p-1)/m bubble formula
+8   Putting it together: Llama 3 405B's 4D parallelism, and DeepSeek-V3's choices
+```
+
+Hardware figures come from NVIDIA's documentation; every claim is cited, with links in the reference list.
 
 ---
 
@@ -189,8 +241,10 @@ The `transformer_from_scratch_subword.ipynb` notebook applies the same principle
 
 ```
 Transformers/
-├── transformer_from_scratch_subword.ipynb   # language model + grokking induction
+├── transformer_from_scratch.ipynb           # language model + grokking induction
 ├── transformer_math_operations.ipynb        # arithmetic + grokking demonstration
+├── modern_llm_techniques.ipynb              # bonus: MoE, KV cache, GQA, quantization, DPO, SAEs
+├── llm_infrastructure.ipynb                 # bonus: CUDA, NCCL, DDP, Megatron, NVLink, InfiniBand
 ├── requirements.txt
 └── README.md
 ```

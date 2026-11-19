@@ -1,0 +1,14 @@
+course/
+
+# Python environments & caches
+env/
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# OS clutter
+.DS_Store
+
+# Plot images
+*_cell*_out*.png
+
